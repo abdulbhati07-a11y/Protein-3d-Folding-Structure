@@ -1,21 +1,27 @@
 {
+  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
-    { "source": "/api/health", "destination": "/api/health.py" },
-    { "source": "/api/predictions/predict", "destination": "/api/predictions/predict.py" },
-    { "source": "/api/predictions/history", "destination": "/api/predictions/history.py" },
-    { "source": "/api/predictions/history/:id", "destination": "/api/predictions/[id].py" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
+  "functions": {
+    "api/health.py": { "runtime": "python3.12" },
+    "api/predictions/predict.py": { "runtime": "python3.12" },
+    "api/predictions/history.py": { "runtime": "python3.12" },
+    "api/predictions/[id].py": { "runtime": "python3.12" }
+  },
+  "routes": [
+    { "src": "/api/health", "dest": "/api/health.py" },
+    { "src": "/api/predictions/predict", "dest": "/api/predictions/predict.py" },
+    { "src": "/api/predictions/history", "dest": "/api/predictions/history.py" },
+    { "src": "/api/predictions/history/([^/]+)", "dest": "/api/predictions/[id].py" },
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
-    }
-  ]
+      "src": "/api/(.*)",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "ignoreCommand": "echo 'ignoring backend'"
 }

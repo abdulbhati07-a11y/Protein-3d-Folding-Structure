@@ -1,0 +1,6 @@
+backend/
+docker/
+docs/
+ci-cd/
+kubernetes/
+scripts/
