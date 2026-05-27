@@ -1,0 +1,63 @@
+.profile-panel {
+  max-width: 600px;
+  width: 90%;
+}
+
+.profile-panel .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.profile-panel label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.profile-panel input[type="text"],
+.profile-panel input[type="email"],
+.profile-panel select,
+.profile-panel textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.25rem;
+  font-family: inherit;
+  font-size: 1rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.profile-panel input[type="text"]:focus,
+.profile-panel input[type="email"]:focus,
+.profile-panel select:focus,
+.profile-panel textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.1);
+}
+
+.profile-panel input[type="email"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: var(--bg-secondary);
+}
+
+.profile-panel .alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.profile-panel .alert-success {
+  background-color: var(--success-color);
+  color: white;
+  border: 1px solid darken(var(--success-color), 10%);
+}
+
+.profile-panel .alert-danger {
+  background-color: var(--error-color);
+  color: white;
+  border: 1px solid darken(var(--error-color), 10%);
+}

@@ -292,9 +292,26 @@ export default function ProteinViewer({ coordinates, settings, predictionData, c
     Math.sqrt((c.x - center[0]) ** 2 + (c.y - center[1]) ** 2 + (c.z - center[2]) ** 2),
   );
   const cameraDistance = Math.max(Math.max(...distances) * 1.5, 10);
+  const helices = predictionData?.structure?.secondary_structure?.match(/H/g)?.length || 0;
+  const sheets = predictionData?.structure?.secondary_structure?.match(/E/g)?.length || 0;
+  const a11yDescription = `3D Protein Viewer. The predicted structure contains ${predictionData?.length || 0} residues, approximately ${helices} helical segments, and ${sheets} beta sheet segments. Use arrow keys to rotate the molecule.`;
 
   return (
-    <div className="protein-viewer-container">
+    <div 
+      className="protein-viewer-container" 
+      role="region" 
+      aria-label="3D Protein Structure Viewer"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        // Basic keyboard rotation handler could be implemented here or relying on OrbitControls native support
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+           e.preventDefault(); // Prevent page scroll when focusing canvas
+        }
+      }}
+    >
+      <div className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+        {a11yDescription}
+      </div>
       <Canvas camera={{ position: [center[0], center[1], center[2] + cameraDistance], fov: 45 }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[100, 100, 100]} intensity={1.5} />

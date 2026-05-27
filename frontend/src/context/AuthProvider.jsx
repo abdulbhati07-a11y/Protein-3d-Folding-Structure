@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../config/supabase';
 import { AuthContext } from './auth-context';
+import { fetchProfile } from '../services/api';
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
@@ -26,6 +28,23 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch profile when user is authenticated
+  useEffect(() => {
+    if (user && session) {
+      fetchProfile(session.access_token)
+        .then((data) => {
+          setProfile(data);
+        })
+        .catch((error) => {
+          console.error('Failed to fetch profile:', error);
+          setProfile(null);
+        });
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProfile(null);
+    }
+  }, [user, session]);
 
   const signUp = async (email, password, displayName) => {
     if (!supabase) {
@@ -65,6 +84,7 @@ export function AuthProvider({ children }) {
     () => ({
       session,
       user,
+      profile,
       loading,
       isConfigured: isSupabaseConfigured,
       signUp,
@@ -72,11 +92,12 @@ export function AuthProvider({ children }) {
       signOut,
       resetPassword,
       displayName:
-        user?.user_metadata?.display_name
+        profile?.display_name
+        || user?.user_metadata?.display_name
         || user?.email?.split('@')[0]
         || null,
     }),
-    [session, user, loading],
+    [session, user, profile, loading],
   );
 
   return (

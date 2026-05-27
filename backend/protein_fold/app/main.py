@@ -50,6 +50,12 @@ def create_app(config_name='development'):
     from .blueprints.predictions import predictions_bp
     app.register_blueprint(predictions_bp, url_prefix='/api/predictions')
 
+    from .blueprints.profiles import profiles_bp
+    app.register_blueprint(profiles_bp, url_prefix='/api/users')
+
+    from .blueprints.projects import projects_bp
+    app.register_blueprint(projects_bp, url_prefix='/api/users')
+
     # Return a clean JSON 429 instead of the default HTML page
     @app.errorhandler(429)
     def ratelimit_handler(e):

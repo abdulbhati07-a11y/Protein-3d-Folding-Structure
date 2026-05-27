@@ -8,7 +8,11 @@ from protein_fold.app.database import (
     delete_prediction,
     get_prediction_by_id,
     get_prediction_history,
+    get_prediction_by_sequence,
+    get_public_predictions,
+    get_public_prediction_by_id,
     save_prediction,
+    update_prediction_sharing,
 )
 from protein_fold.app.main import limiter
 from protein_fold.app.services.coordinate_generator import predict_protein_structure
@@ -52,8 +56,6 @@ def predict():
 
     prediction_id = f"pred_{uuid.uuid4().hex[:12]}"
     sequence = sequence.upper()
-
-    result = predict_protein_structure(sequence)
     timestamp = datetime.now().isoformat()
     user_id = _scoped_user_id()
 
@@ -62,6 +64,18 @@ def predict():
             "status": "error",
             "message": "Authenticated user required to save predictions.",
         }), 401
+
+    # Check for existing global prediction to save time
+    cached = get_prediction_by_sequence(sequence)
+    if cached:
+        result = {
+            "structure": cached["structure"],
+            "coordinates": cached["coordinates"],
+            "binding_pockets": cached["binding_pockets"],
+            "model_source": cached["model_source"]
+        }
+    else:
+        result = predict_protein_structure(sequence)
 
     if not save_prediction(
         pred_id=prediction_id,
@@ -115,4 +129,53 @@ def delete_history_item(pred_id):
     deleted = delete_prediction(pred_id, user_id=user_id)
     if deleted:
         return jsonify({"status": "success", "message": "Prediction deleted"}), 200
+    return jsonify({"status": "error", "message": "Prediction not found"}), 404
+
+
+# ============================================================================
+# Sharing & Public Predictions
+# ============================================================================
+
+@predictions_bp.route('/history/<pred_id>/share', methods=['PUT'])
+@require_auth
+def update_sharing(pred_id):
+    """Toggle sharing and update prediction metadata."""
+    user_id = _scoped_user_id()
+    if not user_id:
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+    data = request.json or {}
+    is_public = data.get('is_public', False)
+    notes = data.get('notes')
+    tags = data.get('tags', [])
+
+    if not update_prediction_sharing(
+        pred_id=pred_id,
+        user_id=user_id,
+        is_public=is_public,
+        notes=notes,
+        tags=tags,
+    ):
+        return jsonify({
+            "status": "error",
+            "message": "Failed to update prediction sharing or prediction not found",
+        }), 500
+
+    return jsonify({"status": "success"})
+
+
+@predictions_bp.route('/public/predictions', methods=['GET'])
+def list_public_predictions():
+    """Get public predictions (no auth required)."""
+    limit = request.args.get('limit', default=50, type=int)
+    predictions = get_public_predictions(limit=limit)
+    return jsonify({"predictions": predictions})
+
+
+@predictions_bp.route('/public/predictions/<pred_id>', methods=['GET'])
+def get_public_prediction(pred_id):
+    """Get a specific public prediction (no auth required)."""
+    prediction = get_public_prediction_by_id(pred_id)
+    if prediction:
+        return jsonify(prediction)
     return jsonify({"status": "error", "message": "Prediction not found"}), 404
